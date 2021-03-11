@@ -1,25 +1,25 @@
 import abc
-from .core import BackupStatus, Backuppable
+import core as c
 
 
 class BaseAdapter(abc.ABC):
-    """Base abstract class for wrappers"""
+    """Base abstract class for adapters"""
 
-    def check_env(self):
-        raise NotImplementedError
+    def backup(self, raw_object: bytes, dst: c.Destination) -> c.Status:
+        """Backup the bytes object with the use of the adapter
 
-    def backup_file(self, backuppable: Backuppable):
+        :param raw_object: The bytes to backup
+        :param dst: The destination of backup
+        :return: Status code of backup
+        """
         raise NotImplementedError
 
 
 class TelegramAdapter(BaseAdapter):
     """Telegram adapter"""
 
-    def check_env(self):
-        pass
-
-    def backup_file(self, backuppable: Backuppable):
-        pass
+    def backup(self, raw_object: bytes, dst: c.Destination) -> c.Status:
+        raise NotImplementedError
 
 
 def get_adapter(adapter: str) -> BaseAdapter:
