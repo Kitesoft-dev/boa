@@ -1,11 +1,11 @@
 import abc
-import boa.core as c
+import boa.core as core
 
 
 class BaseAdapter(abc.ABC):
     """Base abstract class for adapters"""
 
-    def backup(self, raw_object: bytes, dst: c.Destination) -> c.Status:
+    def backup(self, raw_object: bytes, dst: core.Destination) -> core.Status:
         """Backup the bytes object with the use of the adapter
 
         :param raw_object: The bytes to backup
@@ -18,7 +18,7 @@ class BaseAdapter(abc.ABC):
 class TelegramAdapter(BaseAdapter):
     """Telegram adapter"""
 
-    def backup(self, raw_object: bytes, dst: c.Destination) -> c.Status:
+    def backup(self, raw_object: bytes, dst: core.Destination) -> core.Status:
         raise NotImplementedError
 
 

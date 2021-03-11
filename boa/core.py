@@ -24,17 +24,17 @@ def is_status_failed(status: Status) -> bool:
     return bool(status & Status.FAILED)
 
 
-class Backuppable(abc.ABC):
+class Source(abc.ABC):
     """Interface for backuppable classes"""
     def __bytes__(self) -> bytes:
         raise NotImplementedError
 
 
-class File(Backuppable, abc.ABC):
+class FileSource(Source, abc.ABC):
     """Interface for File objects"""
 
 
-class FilePath(File):
+class FilePathSource(FileSource):
     """Interface for FilePath objects (path-likes)"""
 
     def __init__(self, filepath: typing.Union[str, os.PathLike]):
@@ -44,7 +44,7 @@ class FilePath(File):
         return open(self.filepath, 'rb').read()
 
 
-class FileStream(File):
+class FileStreamSource(FileSource):
     """Interface for FileStream objects (text like)"""
     def __init__(self, stream: typing.Union[io.RawIOBase, io.BufferedIOBase, io.TextIOBase]):
         # set stream position to start
@@ -63,9 +63,9 @@ class FileStream(File):
             return bytes(content)
 
 
-class Command(Backuppable):
+class CommandSource(Source):
     """Interface for Command objects (generating an output to backup)"""
-    def __init__(self, *args, destination: typing.Union[None, str, os.PathLike] = None):
+    def __init__(self, *args, destination: typing.Optional[os.PathLike] = None):
         """Constructor for Command object
 
         :param args: The iterable command to launch

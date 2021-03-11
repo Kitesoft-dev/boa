@@ -11,13 +11,13 @@ class Boa:
             adapter = adapters.get_adapter(adapter)
         self.adapter = adapter
 
-    def backup(self, backuppable: core.Backuppable, dst: core.Destination) -> core.Status:
+    def backup(self, src: core.Source, dst: core.Destination) -> core.Status:
         """Backup the selected file
 
-        :param backuppable: The file to backup or the command to run
+        :param src: The file to backup or the command to run
         :param dst: The destination of backup
         :return: Status code of backup
         """
-        raw = bytes(backuppable)
+        raw = bytes(src)
         status = self.adapter.backup(raw, dst)
         return status
