@@ -1,7 +1,6 @@
 import typing
-import exceptions
-import adapters
-import core
+import boa.adapters as adapters
+import boa.core as core
 
 
 class Boa:

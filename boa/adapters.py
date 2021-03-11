@@ -1,5 +1,5 @@
 import abc
-import core as c
+import boa.core as c
 
 
 class BaseAdapter(abc.ABC):
