@@ -1,5 +1,6 @@
 import subprocess
 import typing
+import locale
 import enum
 import abc
 import os
@@ -45,11 +46,21 @@ class FilePath(File):
 
 class FileStream(File):
     """Interface for FileStream objects (text like)"""
-    def __init__(self, stream: io.TextIOBase):
+    def __init__(self, stream: typing.Union[io.RawIOBase, io.BufferedIOBase, io.TextIOBase]):
+        # set stream position to start
+        # stream.seek(0)
         self.stream = stream
 
     def __bytes__(self) -> bytes:
-        return bytes(self.stream.read())
+        content = self.stream.read()
+        if isinstance(content, str):
+            if hasattr(self.stream, 'encoding'):
+                encoding = self.stream.encoding
+            else:
+                encoding = locale.getpreferredencoding()
+            return bytes(content, encoding=encoding)
+        else:
+            return bytes(content)
 
 
 class Command(Backuppable):
@@ -65,7 +76,7 @@ class Command(Backuppable):
 
     def __bytes__(self) -> bytes:
         dst = self.destination
-        # if dst is not setted, the stdout will be used
+        # if dst is not set, the stdout will be used
         capture_output = not bool(dst)
         status = subprocess.run(*self.args, capture_output=capture_output)
 
