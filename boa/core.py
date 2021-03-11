@@ -53,14 +53,17 @@ class FileStreamSource(FileSource):
 
     def __bytes__(self) -> bytes:
         content = self.stream.read()
+        if not content:
+            return b''
         if isinstance(content, str):
-            if hasattr(self.stream, 'encoding'):
+            if hasattr(self.stream, 'encoding') and self.stream.encoding:
                 encoding = self.stream.encoding
             else:
-                encoding = locale.getpreferredencoding()
-            return bytes(content, encoding=encoding)
+                encoding = locale.getpreferredencoding(False)
+            raw = bytes(content, encoding=encoding)
         else:
-            return bytes(content)
+            raw = bytes(content)
+        return raw
 
 
 class CommandSource(Source):
