@@ -1,36 +1,80 @@
+import subprocess
+import typing
 import enum
 import abc
+import os
+import io
 
 
-class BackupStatus(enum.Flag):
+class Status(enum.Flag):
     """The status returned after a backup operation"""
     OK = enum.auto()
 
     UNAUTHORIZED = enum.auto()
     TIMEOUT = enum.auto()
     INTERNAL_ERROR = enum.auto()
-    FAILED = UNAUTHORIZED | TIMEOUT | INTERNAL_ERROR
+
+    USER_ERROR = enum.auto()
+
+    FAILED = UNAUTHORIZED | TIMEOUT | INTERNAL_ERROR | USER_ERROR
 
 
-def is_status_failed(status: BackupStatus) -> bool:
-    return bool(status & BackupStatus.FAILED)
+def is_status_failed(status: Status) -> bool:
+    return bool(status & Status.FAILED)
 
 
 class Backuppable(abc.ABC):
     """Interface for backuppable classes"""
+    def __bytes__(self) -> bytes:
+        raise NotImplementedError
 
 
-class File(Backuppable):
+class File(Backuppable, abc.ABC):
     """Interface for File objects"""
 
 
 class FilePath(File):
     """Interface for FilePath objects (path-likes)"""
 
+    def __init__(self, filepath: typing.Union[str, os.PathLike]):
+        self.filepath = filepath
+
+    def __bytes__(self) -> bytes:
+        return open(self.filepath, 'rb').read()
+
 
 class FileStream(File):
-    """Interface for FileStream objects (byte-likes)"""
+    """Interface for FileStream objects (text like)"""
+    def __init__(self, stream: io.TextIOBase):
+        self.stream = stream
+
+    def __bytes__(self) -> bytes:
+        return bytes(self.stream.read())
 
 
 class Command(Backuppable):
     """Interface for Command objects (generating an output to backup)"""
+    def __init__(self, *args, destination: typing.Union[None, str, os.PathLike] = None):
+        """Constructor for Command object
+
+        :param args: The iterable command to launch
+        :param destination: The destionation of the command. If None, stdout will be used.
+        """
+        self.args = args
+        self.destination = destination
+
+    def __bytes__(self) -> bytes:
+        dst = self.destination
+        # if dst is not setted, the stdout will be used
+        capture_output = not bool(dst)
+        status = subprocess.run(*self.args, capture_output=capture_output)
+
+        if capture_output:
+            raw = status.stdout
+        else:
+            raw = open(self.destination, 'rb').read()
+        return raw
+
+
+class Destination(abc.ABC):
+    """Interface for destination of backup"""
