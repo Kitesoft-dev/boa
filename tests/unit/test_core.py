@@ -3,6 +3,8 @@ import tempfile
 import locale
 import io
 import os
+import sys
+import pytest
 
 
 def test_get_encoding():
@@ -85,6 +87,7 @@ def test_source_file():
     assert bytes(source) == b''
 
 
+@pytest.mark.skipif('win' not in sys.platform, reason='Cannot run a win command in other OS!')
 def test_source_command():
     # with null destination, bytes will return stdout
     source = core.CommandSource(['cd'], destination=None, shell=True)
