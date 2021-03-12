@@ -104,16 +104,16 @@ class CommandSource(Source):
 
 class Destination(abc.ABC):
     """Interface for destination of backup"""
-    def write(self, content: bytes):
+    def write(self, content: bytes) -> Status:
         raise NotImplementedError
 
 
 class FilePathDestination(Destination):
     """Interface for destination of backup on filesystem"""
-    def __init__(self, filepath: os.PathLike):
+    def __init__(self, filepath: typing.Union[str, os.PathLike]):
         self.filepath = filepath
 
-    def write(self, content: bytes):
+    def write(self, content: bytes) -> Status:
         with open(self.filepath, 'wb') as f:
             f.write(content)
         return Status.OK
@@ -124,8 +124,9 @@ class FileStreamDestination(Destination):
     def __init__(self, filestream: typing.Union[io.BytesIO, io.StringIO]):
         self.filestream = filestream
 
-    def write(self, content: bytes):
+    def write(self, content: bytes) -> Status:
         if isinstance(self.filestream, io.StringIO):
             encoding = get_encoding(self.filestream)
             content = str(content, encoding=encoding)
         self.filestream.write(content)
+        return Status.OK
