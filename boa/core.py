@@ -116,11 +116,9 @@ class FileStreamDestination(Destination):
     """Interface for destination of backup on in-memory stream"""
     def __init__(self, filestream: typing.Union[io.BytesIO, io.StringIO]):
         self.filestream = filestream
-        self.encoding = None
-        if isinstance(filestream, io.StringIO):
-            self.encoding = get_encoding(filestream)
 
     def write(self, content: bytes):
-        if self.encoding:
-            content = str(content, self.encoding)
+        if isinstance(self.filestream, io.StringIO):
+            encoding = get_encoding(self.filestream)
+            content = str(content, encoding=encoding)
         self.filestream.write(content)
