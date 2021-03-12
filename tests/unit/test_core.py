@@ -104,3 +104,20 @@ def test_source_command():
     # with destination set, bytes will return its content
     source = core.CommandSource([], destination=fp.name, shell=True)
     assert bytes(source) == bmsg
+
+
+def test_destination_filepath():
+    msg = 'foo'
+    bmsg = msg.encode()
+
+    # test text file
+    fp = tempfile.NamedTemporaryFile('w+t', delete=False)
+    dst = core.FilePathDestination(fp.name)
+    dst.write(bmsg)
+    assert fp.read() == msg
+
+    # test binary file
+    fp = tempfile.NamedTemporaryFile('w+b', delete=False)
+    dst = core.FilePathDestination(fp.name)
+    dst.write(bmsg)
+    assert fp.read() == bmsg
