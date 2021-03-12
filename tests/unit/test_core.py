@@ -2,6 +2,7 @@ import boa.core as core
 import tempfile
 import locale
 import io
+import os
 
 
 def test_get_encoding():
@@ -68,15 +69,13 @@ def test_source_file():
     # bytes
     with tempfile.NamedTemporaryFile(delete=False) as fp:
         fp.write(bmsg)
-        fname = fp.name
-    source = core.FilePathSource(fname)
+    source = core.FilePathSource(fp.name)
     assert bytes(source) == bmsg
 
     # text (str)
     with tempfile.NamedTemporaryFile('w+t', delete=False) as fp:
         fp.write(msg)
-        fname = fp.name
-    source = core.FilePathSource(fname)
+    source = core.FilePathSource(fp.name)
     assert bytes(source) == bmsg
 
     # test exausted stream
@@ -84,3 +83,24 @@ def test_source_file():
     stream.read()  # exaust
     source = core.FileStreamSource(stream)
     assert bytes(source) == b''
+
+
+def test_source_command():
+    # with null destination, bytes will return stdout
+    source = core.CommandSource(['cd'], destination=None, shell=True)
+
+    # last character is CRLF, so we remove it
+    assert bytes(source).strip() == os.getcwd().encode()
+
+    # with capture_output False, stdout must be returned
+    source = core.CommandSource(['cd'], destination=None, shell=True, capture_output=False)
+    assert bytes(source).strip() == os.getcwd().encode()
+
+    # create a tempfile as fake destination
+    bmsg = b'foobar'
+    with tempfile.NamedTemporaryFile('wb', delete=False) as fp:
+        fp.write(bmsg)
+
+    # with destination set, bytes will return its content
+    source = core.CommandSource([], destination=fp.name, shell=True)
+    assert bytes(source) == bmsg
