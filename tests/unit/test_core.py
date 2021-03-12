@@ -1,6 +1,34 @@
 import boa.core as core
 import tempfile
+import locale
 import io
+
+
+def test_get_encoding():
+    class Foo:
+        encoding = None
+
+    # create an object without 'encoding' property
+    obj = object()
+    default_encoding = locale.getpreferredencoding(False)
+
+    # without property, returns default encoding
+    assert core.get_encoding(obj) == default_encoding
+
+    # now create an object with 'encoding' property
+    obj = Foo()
+
+    # with null or empty property, returns default encoding
+    obj.encoding = None
+    assert core.get_encoding(obj) == default_encoding
+
+    obj.encoding = ''
+    assert core.get_encoding(obj) == default_encoding
+
+    # with set property, returns it
+    enc = 'foo'
+    obj.encoding = enc
+    assert core.get_encoding(obj) == enc
 
 
 def test_backup_status():

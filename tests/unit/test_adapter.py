@@ -3,9 +3,14 @@ import pytest
 
 
 def test_adapters():
+    valid = 'telegram'
+    invalid = 'foo'
+
     # valid adapter
-    assert isinstance(get_adapter("telegram"), TelegramAdapter)
+    adapter = get_adapter(valid)
+    assert isinstance(adapter, TelegramAdapter)
+    assert isinstance(adapter, BaseAdapter)
 
     # invalid adapter
     with pytest.raises(ValueError):
-        get_adapter("foobar")
+        get_adapter(invalid)
