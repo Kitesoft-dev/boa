@@ -6,7 +6,7 @@ import boa.core as core
 class Boa:
     """Boa is the main entry for the application"""
 
-    def __init__(self, adapter: typing.Union[str, adapters.BaseAdapter]):
+    def __init__(self, adapter: typing.Union[None, str, adapters.BaseAdapter] = None):
         if isinstance(adapter, str):
             adapter = adapters.get_adapter(adapter)
         self.adapter = adapter
@@ -19,5 +19,9 @@ class Boa:
         :return: Status code of backup
         """
         raw = bytes(src)
-        status = self.adapter.backup(raw, dst)
+        if self.adapter:
+            status = self.adapter.backup(raw, dst)
+        else:
+            dst.write(raw)
+            status = core.Status.OK
         return status
