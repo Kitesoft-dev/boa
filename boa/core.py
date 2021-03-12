@@ -7,6 +7,14 @@ import os
 import io
 
 
+def get_encoding(obj: typing.Any):
+    if hasattr(obj, 'encoding') and obj.encoding:
+        encoding = obj.encoding
+    else:
+        encoding = locale.getpreferredencoding(False)
+    return encoding
+
+
 class Status(enum.Flag):
     """The status returned after a backup operation"""
     OK = enum.auto()
@@ -56,10 +64,7 @@ class FileStreamSource(FileSource):
         if not content:
             return b''
         if isinstance(content, str):
-            if hasattr(self.stream, 'encoding') and self.stream.encoding:
-                encoding = self.stream.encoding
-            else:
-                encoding = locale.getpreferredencoding(False)
+            encoding = get_encoding(self.stream)
             raw = bytes(content, encoding=encoding)
         else:
             raw = bytes(content)
@@ -104,12 +109,18 @@ class FilePathDestination(Destination):
     def write(self, content: bytes):
         with open(self.filepath, 'wb') as f:
             f.write(content)
+        return Status.OK
 
 
 class FileStreamDestination(Destination):
     """Interface for destination of backup on in-memory stream"""
     def __init__(self, filestream: typing.Union[io.BytesIO, io.StringIO]):
         self.filestream = filestream
+        self.encoding = None
+        if isinstance(filestream, io.StringIO):
+            self.encoding = get_encoding(filestream)
 
     def write(self, content: bytes):
+        if self.encoding:
+            content = str(content, self.encoding)
         self.filestream.write(content)
