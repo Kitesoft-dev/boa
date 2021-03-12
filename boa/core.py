@@ -89,11 +89,10 @@ class CommandSource(Source):
         self.destination = destination
 
     def __bytes__(self) -> bytes:
-        kwargs = self.kwargs
         # capture output is True by default
-        if 'capture_output' in kwargs:
-            del kwargs['capture_output']
-        status = subprocess.run(self.args, capture_output=True, **self.kwargs)
+        kwargs = self.kwargs.copy()
+        kwargs['capture_output'] = True
+        status = subprocess.run(self.args, **kwargs)
 
         if self.destination:
             raw = open(self.destination, 'r+b').read()
