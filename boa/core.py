@@ -73,25 +73,32 @@ class FileStreamSource(FileSource):
 
 class CommandSource(Source):
     """Interface for Command objects (generating an output to backup)"""
-    def __init__(self, *args, destination: typing.Optional[os.PathLike] = None):
-        """Constructor for Command object
+    def __init__(
+            self,
+            args: typing.Union[typing.List, typing.Tuple],
+            destination: typing.Union[None, str, os.PathLike] = None,
+            **kwargs):
+        """Constructor for Command object. It follows the structure of subprocess.run() call
 
-        :param args: The iterable command to launch
-        :param destination: The destionation of the command. If None, stdout will be used.
+        :param args: The command to launch, must be list-like
+        :param destination: The filepath destionation of the command. If None, stdout will be used
+        :param kwargs: Keyword arguments to pass to subprocess.run() call
         """
         self.args = args
+        self.kwargs = kwargs
         self.destination = destination
 
     def __bytes__(self) -> bytes:
-        dst = self.destination
-        # if dst is not set, the stdout will be used
-        capture_output = not bool(dst)
-        status = subprocess.run(*self.args, capture_output=capture_output)
+        kwargs = self.kwargs
+        # capture output is True by default
+        if 'capture_output' in kwargs:
+            del kwargs['capture_output']
+        status = subprocess.run(self.args, capture_output=True, **self.kwargs)
 
-        if capture_output:
-            raw = status.stdout
+        if self.destination:
+            raw = open(self.destination, 'r+b').read()
         else:
-            raw = open(self.destination, 'rb').read()
+            raw = status.stdout
         return raw
 
 
