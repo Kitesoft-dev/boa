@@ -2,9 +2,10 @@ import boa.core as core
 import tempfile
 import locale
 import io
-import os
 import sys
-import pytest
+
+
+is_win = sys.platform == 'win32'
 
 
 def test_get_encoding():
@@ -87,26 +88,23 @@ def test_source_file():
     assert bytes(source) == b''
 
 
-@pytest.mark.skipif('win' not in sys.platform, reason='Cannot run a win command in other OS!')
 def test_source_command():
+    # setup message and command
+    msg = 'foo'
+    bmsg = msg.encode()
+    cmd = ['echo', msg]
+
+    # on windows shell must be true
+    shell = bool(is_win)
+
     # with null destination, bytes will return stdout
-    source = core.CommandSource(['cd'], destination=None, shell=True)
+    source = core.CommandSource(cmd, shell=shell)
+    assert bytes(source).strip() == bmsg
 
-    # last character is CRLF, so we remove it
-    assert bytes(source).strip() == os.getcwd().encode()
-
-    # with capture_output False, stdout must be returned
-    source = core.CommandSource(['cd'], destination=None, shell=True, capture_output=False)
-    assert bytes(source).strip() == os.getcwd().encode()
-
-    # create a tempfile as fake destination
-    bmsg = b'foobar'
-    with tempfile.NamedTemporaryFile('wb', delete=False) as fp:
-        fp.write(bmsg)
-
-    # with destination set, bytes will return its content
-    source = core.CommandSource([], destination=fp.name, shell=True)
-    assert bytes(source) == bmsg
+    # with destination set, bytes method will return its content
+    with tempfile.NamedTemporaryFile() as dst:
+        source = core.CommandSource(cmd, destination=dst.name, shell=shell)
+    assert bytes(source).strip() == bmsg
 
 
 def test_destination_filepath():

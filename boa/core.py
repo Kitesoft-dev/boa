@@ -77,29 +77,21 @@ class CommandSource(Source):
             self,
             args: typing.Union[typing.List, typing.Tuple],
             destination: typing.Union[None, str, os.PathLike] = None,
-            **kwargs):
+            shell: bool = False):
         """Constructor for Command object. It follows the structure of subprocess.run() call
 
         :param args: The command to launch, must be list-like
         :param destination: The filepath destionation of the command. If None, stdout will be used
-        :param kwargs: Keyword arguments to pass to subprocess.run() call
+        :param shell: Launch the command in shell mode or not
         """
         self.args = args
-        self.kwargs = kwargs
         self.destination = destination
+        self.shell = shell
 
     def __bytes__(self) -> bytes:
-        kwargs = self.kwargs.copy()
-        # delete these keys from kwargs, if they exist
-        for key in ('capture_output', 'stdout', 'stderr'):
-            kwargs.pop(key, None)
-
-        status = subprocess.run(self.args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs)
-
-        if self.destination:
-            raw = open(self.destination, 'r+b').read()
-        else:
-            raw = status.stdout
+        destination = open(self.destination, 'wb') if self.destination else subprocess.PIPE
+        status = subprocess.run(self.args, stdout=destination, stderr=subprocess.PIPE, shell=self.shell)
+        raw = open(self.destination, 'rb').read() if self.destination else status.stdout
         return raw
 
 
