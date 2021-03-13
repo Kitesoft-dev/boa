@@ -17,7 +17,7 @@ jobs:
             python -m pip install -U pip
     - name: Dependencies
       run:  |
-            pip install tox pytest coverage
+            pip install -r requirements/dev.txt
     - run:  tox -e py38
     - name: Codecov
       uses: codecov/codecov-action@v1
@@ -25,5 +25,5 @@ jobs:
         token: ${{ secrets.CODECOV_TOKEN }}
         files: coverage.xml
         flags: unittests
-        name: codecov-umbrella
+        name: boa-coverage
         fail_ci_if_error: true
