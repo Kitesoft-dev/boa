@@ -1,29 +1,43 @@
 # Triggers the workflow on push or pull request events
 on: [push, pull_request]
 jobs:
-  coverage:
-    runs-on: ubuntu-latest
+  test:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false  # continue even if some matrix element fails
+      matrix:
+        include:
+          - {name: 'Windows 3.9', python: '3.9', os: windows-latest, tox: py39}
+          - {name: 'Mac 3.9', python: '3.9', os: macos-latest, tox: py39}
+          - {name: 'Linux 3.9', python: '3.9', os: ubuntu-latest, tox: py39}
+          - {name: 'Linux 3.8', python: '3.8', os: ubuntu-latest, tox: py38}
+          - {name: 'Linux 3.7', python: '3.7', os: ubuntu-latest, tox: py37}
+          - {name: 'Linux 3.6', python: '3.6', os: ubuntu-latest, tox: py36}
     steps:
     - name: Checkout repository
       uses: actions/checkout@master
     - name: Setup python
       uses: actions/setup-python@v2
       with:
-        python-version: '3.8'
-    - name: Setup pip
-      run:  |
-            pip install -U wheel
-            pip install -U setuptools
-            python -m pip install -U pip
-    - name: Dependencies
-      run:  |
-            pip install -r requirements/dev.txt
-    - run:  tox -e py38
-    - name: Codecov
-      uses: codecov/codecov-action@v1
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        files: coverage.xml
-        flags: unittests
-        name: boa-coverage
-        fail_ci_if_error: true
+        python-version: ${{ matrix.python }}
+    - run:  pip install tox
+    - run:  tox -e ${{ matrix.tox }}
+  coverage:
+    name: 'Linux 3.9 coverage'
+    runs-on: 'ubuntu-latest'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@master
+      - name: Setup python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+      - run: pip install tox
+      - run: tox -e coverage
+      - name: Codecov
+        uses: codecov/codecov-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage.xml
+          name: boa-coverage
