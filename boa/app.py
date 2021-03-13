@@ -1,4 +1,5 @@
 import typing
+
 import boa.adapters as adapters
 import boa.core as core
 

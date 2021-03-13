@@ -1,10 +1,11 @@
-from boa.adapters import *
 import pytest
+
+from boa.adapters import *
 
 
 def test_adapters():
-    valid = 'telegram'
-    invalid = 'foo'
+    valid = "telegram"
+    invalid = "foo"
 
     # valid adapter
     adapter = get_adapter(valid)

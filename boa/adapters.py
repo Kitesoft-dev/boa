@@ -1,4 +1,5 @@
 import abc
+
 import boa.core as core
 
 
@@ -23,8 +24,12 @@ class TelegramAdapter(BaseAdapter):
 
 
 def get_adapter(adapter: str) -> BaseAdapter:
-    adapters = {'telegram': TelegramAdapter()}
+    adapters = {"telegram": TelegramAdapter()}
     adapter = adapter.lower()
     if adapter not in adapters:
-        raise ValueError('Invalid adapter provided ({}). Valid adapters are {}'.format(adapter, adapters.keys()))
+        raise ValueError(
+            "Invalid adapter provided ({}). Valid adapters are {}".format(
+                adapter, adapters.keys()
+            )
+        )
     return adapters[adapter]

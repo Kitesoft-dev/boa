@@ -1,11 +1,11 @@
-import boa.core as core
-import tempfile
-import locale
 import io
+import locale
 import sys
+import tempfile
 
+import boa.core as core
 
-is_win = sys.platform == 'win32'
+is_win = sys.platform == "win32"
 
 
 def test_get_encoding():
@@ -26,11 +26,11 @@ def test_get_encoding():
     obj.encoding = None
     assert core.get_encoding(obj) == default_encoding
 
-    obj.encoding = ''
+    obj.encoding = ""
     assert core.get_encoding(obj) == default_encoding
 
     # with set property, returns it
-    enc = 'foo'
+    enc = "foo"
     obj.encoding = enc
     assert core.get_encoding(obj) == enc
 
@@ -40,7 +40,7 @@ def test_backup_status():
 
     for key, status in status_dict.items():
         is_expected_failed = True
-        if key == 'OK':
+        if key == "OK":
             is_expected_failed = False
 
         if is_expected_failed:
@@ -50,8 +50,8 @@ def test_backup_status():
 
 
 def test_source_file():
-    msg = 'Hello world!'
-    bmsg = msg.encode('utf-8')  # b'Hello world!'
+    msg = "Hello world!"
+    bmsg = msg.encode("utf-8")  # b'Hello world!'
 
     # Test filestream
     # bytes
@@ -62,7 +62,7 @@ def test_source_file():
         assert bytes(source) == bmsg
 
     # text (str)
-    with tempfile.TemporaryFile('w+t') as fp:
+    with tempfile.TemporaryFile("w+t") as fp:
         fp.write(msg)
         fp.seek(0)
         source = core.FileStreamSource(fp)
@@ -76,23 +76,23 @@ def test_source_file():
     assert bytes(source) == bmsg
 
     # text (str)
-    with tempfile.NamedTemporaryFile('w+t', delete=False) as fp:
+    with tempfile.NamedTemporaryFile("w+t", delete=False) as fp:
         fp.write(msg)
     source = core.FilePathSource(fp.name)
     assert bytes(source) == bmsg
 
     # test exausted stream
-    stream = io.StringIO('foo')
+    stream = io.StringIO("foo")
     stream.read()  # exaust
     source = core.FileStreamSource(stream)
-    assert bytes(source) == b''
+    assert bytes(source) == b""
 
 
 def test_source_command():
     # setup message and command
-    msg = 'foo'
+    msg = "foo"
     bmsg = msg.encode()
-    cmd = ['echo', msg]
+    cmd = ["echo", msg]
 
     # on windows shell must be true
     shell = bool(is_win)
@@ -108,17 +108,17 @@ def test_source_command():
 
 
 def test_destination_filepath():
-    msg = 'foo'
+    msg = "foo"
     bmsg = msg.encode()
 
     # test text file
-    fp = tempfile.NamedTemporaryFile('w+t', delete=False)
+    fp = tempfile.NamedTemporaryFile("w+t", delete=False)
     dst = core.FilePathDestination(fp.name)
     dst.write(bmsg)
     assert fp.read() == msg
 
     # test binary file
-    fp = tempfile.NamedTemporaryFile('w+b', delete=False)
+    fp = tempfile.NamedTemporaryFile("w+b", delete=False)
     dst = core.FilePathDestination(fp.name)
     dst.write(bmsg)
     assert fp.read() == bmsg
