@@ -1,2 +1,2 @@
 # boa - Backup Over Anything
-[![Coverage](https://img.shields.io/codecov/c/github/Kitesoft-dev/boa)](https://app.codecov.io/gh/Kitesoft-dev/boa)
+[![codecov](https://codecov.io/gh/Kitesoft-dev/boa/branch/main/graph/badge.svg?token=F00J7GP6GQ)](https://codecov.io/gh/Kitesoft-dev/boa)
