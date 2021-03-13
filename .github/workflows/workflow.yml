@@ -4,12 +4,26 @@ jobs:
   coverage:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@master
-    - uses: codecov/codecov-action@v1
+    - name: Checkout repository
+      uses: actions/checkout@master
+    - name: Setup python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.8'
+    - name: Setup pip
+      run:  |
+            pip install -U wheel
+            pip install -U setuptools
+            python -m pip install -U pip
+    - name: Dependencies
+      run:  |
+            pip install tox pytest coverage
+    - run:  tox -e py38
+    - name: Codecov
+      uses: codecov/codecov-action@v1
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
-        files: ./coverage.xml
+        files: coverage.xml
         flags: unittests
         name: codecov-umbrella
         fail_ci_if_error: true
-        verbose: true
