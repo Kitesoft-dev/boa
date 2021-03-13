@@ -1,0 +1,27 @@
+name: Linters
+on: [push, pull_request]
+jobs:
+  black:
+    name: 'black check'
+    runs-on: 'ubuntu-latest'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@master
+      - name: Setup python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+      - run: pip install tox
+      - run: tox -e black
+  isort:
+    name: 'isort check'
+    runs-on: 'ubuntu-latest'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@master
+      - name: Setup python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+      - run: pip install tox
+      - run: tox -e isort
