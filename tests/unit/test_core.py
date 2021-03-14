@@ -49,6 +49,14 @@ def test_backup_status():
             assert not status.is_failed()
 
 
+def test_source_bytes():
+    msg = "Hello"
+    bmsg = msg.encode()
+
+    source = core.BytesSource(bmsg)
+    assert bytes(source) == bmsg
+
+
 def test_source_file():
     msg = "Hello world!"
     bmsg = msg.encode("utf-8")  # b'Hello world!'

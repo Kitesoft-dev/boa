@@ -3,7 +3,7 @@ import io
 import pytest
 
 from boa import Boa
-from boa.core import FileStreamDestination, FileStreamSource
+from boa.core import BytesSource, FileStreamDestination, FileStreamSource
 
 
 def test_stringio():
@@ -28,12 +28,12 @@ def test_boa():
     boa = Boa()
 
     # backup str stream
-    boa.backup(FileStreamSource(src), FileStreamDestination(dst))
+    boa.backup_siso(FileStreamSource(src), FileStreamDestination(dst))
     dst.seek(0)
     assert dst.read() == msg
 
     # backup bytes stream
-    boa.backup(FileStreamSource(bsrc), FileStreamDestination(bdst))
+    boa.backup_siso(FileStreamSource(bsrc), FileStreamDestination(bdst))
     bdst.seek(0)
     assert bdst.read() == bmsg
 
@@ -43,4 +43,59 @@ def test_boa():
 
     # TODO remove when telegram adapter is done
     with pytest.raises(NotImplementedError):
-        boa.backup(FileStreamSource(src), FileStreamDestination(dst))
+        boa.backup_siso(FileStreamSource(src), FileStreamDestination(dst))
+
+
+def test_boa_backup_siso():
+    boa = Boa()
+    msg = b"foo"
+
+    source = BytesSource(msg)
+    destination = FileStreamDestination(io.BytesIO())
+    boa.backup(source, destination)
+    destination.filestream.seek(0)
+    assert destination.filestream.read() == msg
+
+
+def test_boa_backup_simo():
+    boa = Boa()
+    msg = b"foo"
+    length = 3
+
+    source = BytesSource(msg)
+    destinations = [FileStreamDestination(io.BytesIO()) for _ in range(length)]
+    boa.backup(source, destinations)
+    for destination in destinations:
+        destination.filestream.seek(0)
+        assert destination.filestream.read() == msg
+
+
+def test_boa_backup_miso():
+    boa = Boa()
+    msg = b"foo"
+    length = 3
+
+    sources = [BytesSource(msg) for _ in range(length)]
+    destination = FileStreamDestination(io.BytesIO())
+    boa.backup(sources, destination)
+    destination.filestream.seek(0)
+    assert destination.filestream.read() == msg * length
+
+
+def test_boa_backup_mimo():
+    boa = Boa()
+    msg = b"foo"
+    length = 3
+
+    sources = [BytesSource(msg) for _ in range(length)]
+    destinations = [FileStreamDestination(io.BytesIO()) for _ in range(length)]
+    boa.backup(sources, destinations)
+    for message, destination in zip([msg] * length, destinations):
+        destination.filestream.seek(0)
+        assert destination.filestream.read() == message
+
+    # mismatch length
+    sources = [BytesSource(msg) for _ in range(length)]
+    destinations = [FileStreamDestination(io.BytesIO()) for _ in range(length + 1)]
+    with pytest.raises(ValueError):
+        boa.backup(sources, destinations)
