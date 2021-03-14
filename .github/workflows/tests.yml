@@ -1,25 +1,29 @@
 name: Tests
+
 on: [push, pull_request]
+
 jobs:
   test:
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: false  # continue even if some matrix element fails
+      fail-fast: false
       matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-ver: [3.6, 3.7, 3.8, 3.9]
         include:
-          - {name: 'Windows 3.9', python: '3.9', os: windows-latest, tox: py39}
-          - {name: 'Mac 3.9', python: '3.9', os: macos-latest, tox: py39}
-          - {name: 'Linux 3.9', python: '3.9', os: ubuntu-latest, tox: py39}
-          - {name: 'Linux 3.8', python: '3.8', os: ubuntu-latest, tox: py38}
-          - {name: 'Linux 3.7', python: '3.7', os: ubuntu-latest, tox: py37}
-          - {name: 'Linux 3.6', python: '3.6', os: ubuntu-latest, tox: py36}
+          - {name: 'Windows 3.9', python: 3.9, os: windows-latest, tox: py39}
+          - {name: 'Mac 3.9', python: 3.9, os: macos-latest, tox: py39}
+          - {name: 'Linux 3.9', python: 3.9, os: ubuntu-latest, tox: py39}
+          - {name: 'Linux 3.8', python: 3.8, os: ubuntu-latest, tox: py38}
+          - {name: 'Linux 3.7', python: 3.7, os: ubuntu-latest, tox: py37}
+          - {name: 'Linux 3.6', python: 3.6, os: ubuntu-latest, tox: py36}
     steps:
-    - name: Checkout repository
+    - name: Checkout
       uses: actions/checkout@master
     - name: Setup python
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python }}
-    - run:  pip install tox
-    - run:  tox -e ${{ matrix.tox }}
+    - run: pip install tox
+    - run: tox -e ${{ matrix.tox }}

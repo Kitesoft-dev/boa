@@ -1,16 +1,18 @@
 name: Coverage
+
 on: [push, pull_request]
+
 jobs:
   coverage:
-    name: 'Linux coverage'
-    runs-on: 'ubuntu-latest'
+    name: Coverage
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@master
       - name: Setup python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.9'
+          python-version: 3.9
       - run: pip install tox
       - run: tox -e coverage
       - name: Codecov
