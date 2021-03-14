@@ -44,9 +44,9 @@ def test_backup_status():
             is_expected_failed = False
 
         if is_expected_failed:
-            assert core.is_status_failed(status)
+            assert status.is_failed()
         else:
-            assert not core.is_status_failed(status)
+            assert not status.is_failed()
 
 
 def test_source_file():

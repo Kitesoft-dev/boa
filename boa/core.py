@@ -28,9 +28,8 @@ class Status(enum.Flag):
 
     FAILED = UNAUTHORIZED | TIMEOUT | INTERNAL_ERROR | USER_ERROR
 
-
-def is_status_failed(status: Status) -> bool:
-    return bool(status & Status.FAILED)
+    def is_failed(self) -> bool:
+        return bool(self & Status.FAILED)
 
 
 class Source(abc.ABC):
