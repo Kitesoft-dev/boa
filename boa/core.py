@@ -39,6 +39,16 @@ class Source(abc.ABC):
         raise NotImplementedError
 
 
+class BytesSource(Source):
+    """Interface for Bytes objects"""
+
+    def __init__(self, raw: bytes):
+        self.raw = raw
+
+    def __bytes__(self):
+        return self.raw
+
+
 class FileSource(Source, abc.ABC):
     """Interface for File objects"""
 
