@@ -9,8 +9,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        python-ver: [3.6, 3.7, 3.8, 3.9]
         include:
           - {name: 'Windows 3.9', python: 3.9, os: windows-latest, tox: py39}
           - {name: 'Mac 3.9', python: 3.9, os: macos-latest, tox: py39}
@@ -18,12 +16,27 @@ jobs:
           - {name: 'Linux 3.8', python: 3.8, os: ubuntu-latest, tox: py38}
           - {name: 'Linux 3.7', python: 3.7, os: ubuntu-latest, tox: py37}
           - {name: 'Linux 3.6', python: 3.6, os: ubuntu-latest, tox: py36}
+          - os: ubuntu-latest
+            path: ~/.cache/pip
+          - os: macos-latest
+            path: ~/Library/Caches/pip
+          - os: windows-latest
+            path: ~\AppData\Local\pip\Cache
     steps:
     - name: Checkout
       uses: actions/checkout@master
     - name: Setup python
       uses: actions/setup-python@v2
       with:
-        python-version: ${{ matrix.python }}
+        python-version: ${{ matrix.python-version }}
+    - name: get pip cache dir
+      id: pip-cache
+      run: echo "::set-output name=dir::$(pip cache dir)"
+    - name: cache pip
+      uses: actions/cache@v2
+      with:
+        path: ${{ steps.pip-cache.outputs.dir }}
+        key: ${{ runner.os }}-pip-${{ matrix.python }}-${{ hashFiles('requirements/*.txt') }}
+        restore-keys: ${{ runner.os }}-pip-${{ matrix.python }}-
     - run: pip install tox
     - run: tox -e ${{ matrix.tox }}
