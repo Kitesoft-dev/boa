@@ -1,2 +1,2 @@
-pre-commit
-tox
+pre-commit==2.11.1
+tox==3.23.0
