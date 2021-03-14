@@ -1,6 +1,6 @@
 import pytest
 
-from boa.adapters import *
+import boa.adapters as adapters
 
 
 def test_adapters():
@@ -8,10 +8,10 @@ def test_adapters():
     invalid = "foo"
 
     # valid adapter
-    adapter = get_adapter(valid)
-    assert isinstance(adapter, TelegramAdapter)
-    assert isinstance(adapter, BaseAdapter)
+    adapter = adapters.get_adapter(valid)
+    assert isinstance(adapter, adapters.TelegramAdapter)
+    assert isinstance(adapter, adapters.BaseAdapter)
 
     # invalid adapter
     with pytest.raises(ValueError):
-        get_adapter(invalid)
+        adapters.get_adapter(invalid)
