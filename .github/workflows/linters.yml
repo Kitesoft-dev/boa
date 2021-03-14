@@ -2,7 +2,7 @@ name: Linters
 on: [push, pull_request]
 jobs:
   black:
-    name: 'black check'
+    name: 'flake8 check'
     runs-on: 'ubuntu-latest'
     steps:
       - name: Checkout repository
@@ -12,7 +12,7 @@ jobs:
         with:
           python-version: '3.9'
       - run: pip install tox
-      - run: tox -e black
+      - run: tox -e flake8
   isort:
     name: 'isort check'
     runs-on: 'ubuntu-latest'
