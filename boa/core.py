@@ -87,7 +87,8 @@ class CommandSource(Source):
         """Constructor for Command object. It follows the structure of subprocess.run() call
 
         :param args: The command to launch, must be list-like
-        :param destination: The filepath destionation of the command. If None, stdout will be used
+        :param destination: The filepath destination of the command.
+        If None, stdout will be used
         :param shell: Launch the command in shell mode or not
         """
         self.args = args
