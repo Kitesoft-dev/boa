@@ -28,8 +28,6 @@ def get_adapter(adapter: str) -> BaseAdapter:
     adapter = adapter.lower()
     if adapter not in adapters:
         raise ValueError(
-            "Invalid adapter provided ({}). Valid adapters are {}".format(
-                adapter, adapters.keys()
-            )
+            f"Invalid adapter provided ({adapter}). Valid adapters are {adapters.keys()}"
         )
     return adapters[adapter]
