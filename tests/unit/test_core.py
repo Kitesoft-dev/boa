@@ -171,3 +171,38 @@ def test_get_wrong_expected():
         core._get("foo", str)
     with pytest.raises(InvalidSourceException):
         core.get_source("foobar.txt")
+
+
+def test_buffered():
+    msg = b"hello world"
+    tries = 3
+
+    # filepath
+    with tempfile.NamedTemporaryFile("w+b", delete=False) as fp:
+        fp.write(msg)
+
+    source = core.BufferedFilePathSource(fp.name)
+
+    # test against exahustation with for loop
+    for _ in range(tries):
+        assert bytes(source) == msg
+
+    # filestream
+    source = core.BufferedFileStreamSource(io.BytesIO(msg))
+
+    for _ in range(tries):
+        assert bytes(source) == msg
+
+    # command
+    # setup message and command
+    msg = "foo"
+    bmsg = msg.encode()
+    cmd = ["echo", msg]
+
+    # on windows shell must be true
+    shell = bool(is_win)
+
+    source = core.BufferedCommandSource(cmd, shell=shell)
+
+    for _ in range(tries):
+        assert bytes(source).strip() == bmsg
