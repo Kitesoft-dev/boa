@@ -1,9 +1,11 @@
 import io
+import tempfile
 
 import pytest
 
-from boa import Boa
+from boa import Boa, backup
 from boa.core import BytesSource, FileStreamDestination, FileStreamSource
+from boa.exception import InvalidDestinationException, InvalidSourceException
 
 
 def test_stringio():
@@ -99,3 +101,41 @@ def test_boa_backup_mimo():
     destinations = [FileStreamDestination(io.BytesIO()) for _ in range(length + 1)]
     with pytest.raises(ValueError):
         boa.backup(sources, destinations)
+
+
+@pytest.mark.parametrize(
+    "src",
+    [
+        b"foo",
+        tempfile.NamedTemporaryFile("w+b", delete=False).name,
+        io.StringIO("hello world"),
+        BytesSource(b"hello"),
+    ],
+)
+@pytest.mark.parametrize(
+    "dst",
+    [
+        tempfile.NamedTemporaryFile("w+b", delete=False).name,
+        io.BytesIO(),
+        FileStreamDestination(io.BytesIO()),
+    ],
+)
+@pytest.mark.parametrize("return_wrappers", [True, False])
+def test_backup(src, dst, return_wrappers):
+    # we already know that backup works, so we
+    # just need to check if conversions are working good
+    backup(src, dst, return_wrappers=return_wrappers)
+
+
+@pytest.mark.parametrize("src", ["this_file_doesnt_exist.txt", 123])
+@pytest.mark.parametrize("dst", [io.BytesIO()])
+def test_backup_wrong_source(src, dst):
+    with pytest.raises(InvalidSourceException):
+        backup(src, dst)
+
+
+@pytest.mark.parametrize("src", [io.BytesIO(b"foo")])
+@pytest.mark.parametrize("dst", [123, b"wrong"])
+def test_backup_wrong_dest(src, dst):
+    with pytest.raises(InvalidDestinationException):
+        backup(src, dst)

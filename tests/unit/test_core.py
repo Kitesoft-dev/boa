@@ -3,7 +3,10 @@ import locale
 import sys
 import tempfile
 
+import pytest
+
 import boa.core as core
+from boa.exception import InvalidSourceException
 
 is_win = sys.platform == "win32"
 
@@ -130,3 +133,41 @@ def test_destination_filepath():
     dst = core.FilePathDestination(fp.name)
     dst.write(bmsg)
     assert fp.read() == bmsg
+
+
+@pytest.mark.parametrize(
+    "src, dst, src_expected, dst_expected",
+    [
+        [
+            tempfile.NamedTemporaryFile("w+t", delete=False).name,
+            "bar",
+            core.FilePathSource,
+            core.FilePathDestination,
+        ],
+        [
+            io.StringIO(),
+            io.BytesIO(),
+            core.FileStreamSource,
+            core.FileStreamDestination,
+        ],
+    ],
+)
+def test_get(src, dst, src_expected, dst_expected):
+    src = core.get_source(src)
+    dst = core.get_destination(dst)
+    assert isinstance(src, src_expected)
+    assert isinstance(dst, dst_expected)
+
+
+def test_get_multiple():
+    srcs = core.get_sources([io.StringIO(), io.BytesIO()])
+    dsts = core.get_destinations([io.BytesIO()])
+    assert all(isinstance(src, core.Source) for src in srcs)
+    assert all(isinstance(dst, core.Destination) for dst in dsts)
+
+
+def test_get_wrong_expected():
+    with pytest.raises(ValueError):
+        core._get("foo", str)
+    with pytest.raises(InvalidSourceException):
+        core.get_source("foobar.txt")
