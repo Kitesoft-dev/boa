@@ -68,8 +68,6 @@ class Boa:
         destination: core.Destination,
     ) -> core.Status:
         """
-        Alias for ``backup_multiple_sources``.
-
         Backup the selected sources into the destination.
 
         The content will be merged across sources into
@@ -185,3 +183,27 @@ class Boa:
                 return self.backup_miso(source, destination)
             else:
                 return self.backup_mimo(source, destination)
+
+
+def backup(source, destination, *, return_wrappers=False):
+    """
+    Backup the selected source(s) into the destination(s) provided.
+
+    Source and destination will be converted into ``Source`` and
+    ``Destination`` respectively. If this conversion fails,
+    an exception will be raised.
+
+    :param return_wrappers: If True, the ``Source`` and
+    ``Destination`` objects will be returned after the status.
+    :param source: The source to backup.
+    :param destination: The destination of backup.
+    :return: Status code of backup.
+    """
+    boa = Boa()
+    _source = core.get_source(source)
+    _destination = core.get_destination(destination)
+    status = boa.backup(_source, _destination)
+    if return_wrappers:
+        return status, _source, _destination
+    else:
+        return status

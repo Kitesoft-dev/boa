@@ -3,8 +3,11 @@ import enum
 import io
 import locale
 import os
+import pathlib
 import subprocess
 import typing
+
+from boa.exception import InvalidDestinationException, InvalidSourceException
 
 
 def get_encoding(obj: typing.Any):
@@ -138,7 +141,9 @@ class FilePathDestination(Destination):
 class FileStreamDestination(Destination):
     """Interface for destination of backup on in-memory stream"""
 
-    def __init__(self, filestream: typing.Union[io.BytesIO, io.StringIO]):
+    def __init__(
+        self, filestream: typing.Union[io.RawIOBase, io.TextIOBase, io.BufferedIOBase]
+    ):
         self.filestream = filestream
 
     def write(self, content: bytes) -> Status:
@@ -147,3 +152,58 @@ class FileStreamDestination(Destination):
             content = str(content, encoding=encoding)
         self.filestream.write(content)
         return Status.OK
+
+
+def _get_source(obj) -> Source:
+    if isinstance(obj, Source):
+        return obj
+    elif isinstance(obj, bytes):
+        return BytesSource(obj)
+    elif isinstance(obj, (str, os.PathLike)):
+        if not pathlib.Path(obj).exists():
+            raise InvalidSourceException("Source path doesn't exist")
+        else:
+            return FilePathSource(obj)
+    elif isinstance(obj, (io.RawIOBase, io.TextIOBase, io.BufferedIOBase)):
+        return FileStreamSource(obj)
+    else:
+        raise InvalidSourceException("Unexpected source given")
+
+
+def _get_destination(obj) -> Destination:
+    if isinstance(obj, Destination):
+        return obj
+    elif isinstance(obj, (str, os.PathLike)):
+        return FilePathDestination(obj)
+    elif isinstance(obj, (io.RawIOBase, io.TextIOBase, io.BufferedIOBase)):
+        return FileStreamDestination(obj)
+    else:
+        raise InvalidDestinationException("Unexpected destination given")
+
+
+def _get(obj, expected) -> typing.Union[Source, Destination]:
+    if expected is Source:
+        return _get_source(obj)
+    elif expected is Destination:
+        return _get_destination(obj)
+    else:
+        raise ValueError(
+            f"Expected class not valid ({expected.__name__}). "
+            f"Allowed are {Source.__name__} and {Destination.__name__}"
+        )
+
+
+def get_source(source) -> Source:
+    return _get(source, Source)
+
+
+def get_destination(destination) -> Destination:
+    return _get(destination, Destination)
+
+
+def get_sources(sources) -> typing.Sequence[Source]:
+    return [get_source(source) for source in sources]
+
+
+def get_destinations(destinations) -> typing.Sequence[Destination]:
+    return [get_destination(destination) for destination in destinations]
