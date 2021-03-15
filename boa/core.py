@@ -36,7 +36,7 @@ class Status(enum.Flag):
 
 
 class Source(abc.ABC):
-    """Interface for backuppable classes"""
+    """Interface for Source objects"""
 
     def __bytes__(self) -> bytes:
         raise NotImplementedError
@@ -66,26 +66,42 @@ class FilePathSource(FileSource):
         return open(self.filepath, "rb").read()
 
 
+class BufferedFilePathSource(BytesSource):
+    """Interface for FilePath buffered objects"""
+
+    def __init__(self, filepath: typing.Union[str, os.PathLike]):
+        raw = bytes(FilePathSource(filepath))
+        super().__init__(raw)
+
+
 class FileStreamSource(FileSource):
     """Interface for FileStream objects (text like)"""
 
     def __init__(
-        self, stream: typing.Union[io.RawIOBase, io.BufferedIOBase, io.TextIOBase]
+        self, filestream: typing.Union[io.RawIOBase, io.BufferedIOBase, io.TextIOBase]
     ):
-        # set stream position to start
-        # stream.seek(0)
-        self.stream = stream
+        self.filestream = filestream
 
     def __bytes__(self) -> bytes:
-        content = self.stream.read()
+        content = self.filestream.read()
         if not content:
             return b""
         if isinstance(content, str):
-            encoding = get_encoding(self.stream)
+            encoding = get_encoding(self.filestream)
             raw = bytes(content, encoding=encoding)
         else:
             raw = bytes(content)
         return raw
+
+
+class BufferedFileStreamSource(BytesSource):
+    """Interface for FileStream buffered objects"""
+
+    def __init__(
+        self, filestream: typing.Union[io.RawIOBase, io.BufferedIOBase, io.TextIOBase]
+    ):
+        raw = bytes(FileStreamSource(filestream))
+        super().__init__(raw)
 
 
 class CommandSource(Source):
@@ -117,6 +133,19 @@ class CommandSource(Source):
         )
         raw = open(self.destination, "rb").read() if self.destination else status.stdout
         return raw
+
+
+class BufferedCommandSource(BytesSource):
+    """Interface for FileStream buffered objects"""
+
+    def __init__(
+        self,
+        args: typing.Union[typing.List, typing.Tuple],
+        destination: typing.Union[None, str, os.PathLike] = None,
+        shell: bool = False,
+    ):
+        raw = bytes(CommandSource(args, destination, shell))
+        super().__init__(raw)
 
 
 class Destination(abc.ABC):
