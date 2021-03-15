@@ -22,7 +22,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ steps.pip-cache.outputs.dir }}
-          key: pipcache-${{ runner.os }}-${{ matrix.python }}-${{ hashFiles('requirements/*.txt') }}
+          key: pipcache-${{ runner.os }}-3.9-${{ hashFiles('requirements/*.txt') }}
       - run: pip install tox
       - run: tox -e coverage
       - name: Codecov
