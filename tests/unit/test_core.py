@@ -6,7 +6,7 @@ import tempfile
 import pytest
 
 import boa.core as core
-from boa.exception import InvalidSourceException
+from boa.exception import InvalidDestinationException, InvalidSourceException
 
 is_win = sys.platform == "win32"
 
@@ -169,8 +169,15 @@ def test_get_multiple():
 def test_get_wrong_expected():
     with pytest.raises(ValueError):
         core._get("foo", str)
+
+    with pytest.raises(ValueError):
+        core._get_any("bar", str)
+
     with pytest.raises(InvalidSourceException):
         core.get_source("foobar.txt")
+
+    with pytest.raises(InvalidDestinationException):
+        core.get_destination(123)
 
 
 def test_buffered():

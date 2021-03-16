@@ -110,6 +110,7 @@ def test_boa_backup_mimo():
         tempfile.NamedTemporaryFile("w+b", delete=False).name,
         io.StringIO("hello world"),
         BytesSource(b"hello"),
+        [b"foo", b"bar"],
     ],
 )
 @pytest.mark.parametrize(
@@ -118,6 +119,7 @@ def test_boa_backup_mimo():
         tempfile.NamedTemporaryFile("w+b", delete=False).name,
         io.BytesIO(),
         FileStreamDestination(io.BytesIO()),
+        [io.BytesIO(), io.BytesIO()],
     ],
 )
 @pytest.mark.parametrize("return_wrappers", [True, False])
