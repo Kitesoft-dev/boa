@@ -1,4 +1,4 @@
-import typing
+from typing import Sequence, Union
 
 import boa.adapters as adapters
 import boa.core as core
@@ -7,7 +7,7 @@ import boa.core as core
 class Boa:
     """Boa is the main entry for the application"""
 
-    def __init__(self, adapter: typing.Union[None, str, adapters.BaseAdapter] = None):
+    def __init__(self, adapter: Union[None, str, adapters.BaseAdapter] = None):
         if isinstance(adapter, str):
             adapter = adapters.get_adapter(adapter)
         self.adapter = adapter
@@ -26,8 +26,7 @@ class Boa:
         if self.adapter:
             status = self.adapter.backup(raw, destination)
         else:
-            destination.write(raw)
-            status = core.Status.OK
+            status = destination.write(raw)
         return status
 
     def backup_siso(
@@ -44,7 +43,7 @@ class Boa:
 
     def backup_multiple_in_single_out(
         self,
-        sources: typing.Sequence[core.Source],
+        sources: Sequence[core.Source],
         destination: core.Destination,
     ) -> core.Status:
         """
@@ -64,7 +63,7 @@ class Boa:
 
     def backup_miso(
         self,
-        sources: typing.Sequence[core.Source],
+        sources: Sequence[core.Source],
         destination: core.Destination,
     ) -> core.Status:
         """
@@ -82,8 +81,8 @@ class Boa:
     def backup_single_in_multiple_out(
         self,
         source: core.Source,
-        destinations: typing.Sequence[core.Destination],
-    ) -> typing.Sequence[core.Status]:
+        destinations: Sequence[core.Destination],
+    ) -> Sequence[core.Status]:
         """
         Backup the selected source into the destinations provided.
 
@@ -104,8 +103,8 @@ class Boa:
     def backup_simo(
         self,
         source: core.Source,
-        destinations: typing.Sequence[core.Destination],
-    ) -> typing.Sequence[core.Status]:
+        destinations: Sequence[core.Destination],
+    ) -> Sequence[core.Status]:
         """
         Backup the selected source into the destinations provided.
 
@@ -121,9 +120,9 @@ class Boa:
 
     def backup_multiple_in_multiple_out(
         self,
-        sources: typing.Sequence[core.Source],
-        destinations: typing.Sequence[core.Destination],
-    ) -> typing.Sequence[core.Status]:
+        sources: Sequence[core.Source],
+        destinations: Sequence[core.Destination],
+    ) -> Sequence[core.Status]:
         """
         Backup the selected sources into the destinations provided.
 
@@ -144,9 +143,9 @@ class Boa:
 
     def backup_mimo(
         self,
-        sources: typing.Sequence[core.Source],
-        destinations: typing.Sequence[core.Destination],
-    ) -> typing.Sequence[core.Status]:
+        sources: Sequence[core.Source],
+        destinations: Sequence[core.Destination],
+    ) -> Sequence[core.Status]:
         """
         Backup the selected sources into the destinations provided.
 
@@ -161,9 +160,9 @@ class Boa:
 
     def backup(
         self,
-        source: typing.Union[core.Source, typing.Sequence[core.Source]],
-        destination: typing.Union[core.Destination, typing.Sequence[core.Destination]],
-    ) -> typing.Union[core.Status, typing.Sequence[core.Status]]:
+        source: Union[core.Source, Sequence[core.Source]],
+        destination: Union[core.Destination, Sequence[core.Destination]],
+    ) -> Union[core.Status, Sequence[core.Status]]:
         """
         Backup the selected source(s) into the destination(s) provided.
 
@@ -193,15 +192,16 @@ def backup(source, destination, *, return_wrappers=False):
     ``Destination`` respectively. If this conversion fails,
     an exception will be raised.
 
-    :param return_wrappers: If True, the ``Source`` and
-    ``Destination`` objects will be returned after the status.
-    :param source: The source to backup.
-    :param destination: The destination of backup.
+    :param return_wrappers: If True, the Source and
+    Destination objects will be returned after the status.
+    :param source: The source(s) to backup.
+    :param destination: The destination(s) of backup.
     :return: Status code of backup.
     """
     boa = Boa()
-    _source = core.get_source(source)
-    _destination = core.get_destination(destination)
+
+    _source = core.get_any_source(source)
+    _destination = core.get_any_destination(destination)
     status = boa.backup(_source, _destination)
     if return_wrappers:
         return status, _source, _destination

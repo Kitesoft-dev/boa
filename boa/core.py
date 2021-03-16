@@ -5,12 +5,12 @@ import locale
 import os
 import pathlib
 import subprocess
-import typing
+from typing import Sequence, Union
 
 from boa.exception import InvalidDestinationException, InvalidSourceException
 
 
-def get_encoding(obj: typing.Any):
+def get_encoding(obj):
     if hasattr(obj, "encoding") and obj.encoding:
         encoding = obj.encoding
     else:
@@ -59,7 +59,7 @@ class FileSource(Source, abc.ABC):
 class FilePathSource(FileSource):
     """Interface for FilePath objects (path-likes)"""
 
-    def __init__(self, filepath: typing.Union[str, os.PathLike]):
+    def __init__(self, filepath: Union[str, os.PathLike]):
         self.filepath = filepath
 
     def __bytes__(self) -> bytes:
@@ -69,7 +69,7 @@ class FilePathSource(FileSource):
 class BufferedFilePathSource(BytesSource):
     """Interface for FilePath buffered objects"""
 
-    def __init__(self, filepath: typing.Union[str, os.PathLike]):
+    def __init__(self, filepath: Union[str, os.PathLike]):
         raw = bytes(FilePathSource(filepath))
         super().__init__(raw)
 
@@ -78,7 +78,7 @@ class FileStreamSource(FileSource):
     """Interface for FileStream objects (text like)"""
 
     def __init__(
-        self, filestream: typing.Union[io.RawIOBase, io.BufferedIOBase, io.TextIOBase]
+        self, filestream: Union[io.RawIOBase, io.BufferedIOBase, io.TextIOBase]
     ):
         self.filestream = filestream
 
@@ -98,7 +98,7 @@ class BufferedFileStreamSource(BytesSource):
     """Interface for FileStream buffered objects"""
 
     def __init__(
-        self, filestream: typing.Union[io.RawIOBase, io.BufferedIOBase, io.TextIOBase]
+        self, filestream: Union[io.RawIOBase, io.BufferedIOBase, io.TextIOBase]
     ):
         raw = bytes(FileStreamSource(filestream))
         super().__init__(raw)
@@ -109,13 +109,13 @@ class CommandSource(Source):
 
     def __init__(
         self,
-        args: typing.Union[typing.List, typing.Tuple],
-        destination: typing.Union[None, str, os.PathLike] = None,
+        args: Sequence,
+        destination: Union[None, str, os.PathLike] = None,
         shell: bool = False,
     ):
         """Constructor for Command object. It follows the structure of subprocess.run() call
 
-        :param args: The command to launch, must be list-like
+        :param args: The command to launch, must be sequence-like
         :param destination: The filepath destination of the command.
         If None, stdout will be used
         :param shell: Launch the command in shell mode or not
@@ -140,8 +140,8 @@ class BufferedCommandSource(BytesSource):
 
     def __init__(
         self,
-        args: typing.Union[typing.List, typing.Tuple],
-        destination: typing.Union[None, str, os.PathLike] = None,
+        args: Sequence,
+        destination: Union[None, str, os.PathLike] = None,
         shell: bool = False,
     ):
         raw = bytes(CommandSource(args, destination, shell))
@@ -158,7 +158,7 @@ class Destination(abc.ABC):
 class FilePathDestination(Destination):
     """Interface for destination of backup on filesystem"""
 
-    def __init__(self, filepath: typing.Union[str, os.PathLike]):
+    def __init__(self, filepath: Union[str, os.PathLike]):
         self.filepath = filepath
 
     def write(self, content: bytes) -> Status:
@@ -171,7 +171,7 @@ class FileStreamDestination(Destination):
     """Interface for destination of backup on in-memory stream"""
 
     def __init__(
-        self, filestream: typing.Union[io.RawIOBase, io.TextIOBase, io.BufferedIOBase]
+        self, filestream: Union[io.RawIOBase, io.TextIOBase, io.BufferedIOBase]
     ):
         self.filestream = filestream
 
@@ -210,16 +210,16 @@ def _get_destination(obj) -> Destination:
         raise InvalidDestinationException("Unexpected destination given")
 
 
-def _get(obj, expected) -> typing.Union[Source, Destination]:
-    if expected is Source:
-        return _get_source(obj)
-    elif expected is Destination:
-        return _get_destination(obj)
-    else:
+def _get(obj, expected) -> Union[Source, Destination]:
+    if expected not in (Source, Destination):
         raise ValueError(
-            f"Expected class not valid ({expected.__name__}). "
+            f"Expected class not valid ({expected}). "
             f"Allowed are {Source.__name__} and {Destination.__name__}"
         )
+    if expected is Source:
+        return _get_source(obj)
+    else:
+        return _get_destination(obj)
 
 
 def get_source(source) -> Source:
@@ -230,9 +230,31 @@ def get_destination(destination) -> Destination:
     return _get(destination, Destination)
 
 
-def get_sources(sources) -> typing.Sequence[Source]:
+def get_sources(sources) -> Sequence[Source]:
     return [get_source(source) for source in sources]
 
 
-def get_destinations(destinations) -> typing.Sequence[Destination]:
+def get_destinations(destinations) -> Sequence[Destination]:
     return [get_destination(destination) for destination in destinations]
+
+
+def _get_any(
+    obj, expected
+) -> Union[Source, Destination, Sequence[Source], Sequence[Destination]]:
+    if expected not in (Source, Destination):
+        raise ValueError(
+            f"Expected class not valid ({expected}). "
+            f"Allowed are {Source.__name__} and {Destination.__name__}"
+        )
+    if isinstance(obj, Sequence) and not isinstance(obj, (str, bytes)):
+        return get_sources(obj) if expected is Source else get_destinations(obj)
+    else:
+        return get_source(obj) if expected is Source else get_destination(obj)
+
+
+def get_any_source(source) -> Union[Source, Sequence[Source]]:
+    return _get_any(source, Source)
+
+
+def get_any_destination(destination) -> Union[Destination, Sequence[Destination]]:
+    return _get_any(destination, Destination)
