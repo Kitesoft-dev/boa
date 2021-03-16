@@ -66,14 +66,6 @@ class FilePathSource(FileSource):
         return open(self.filepath, "rb").read()
 
 
-class BufferedFilePathSource(BytesSource):
-    """Interface for FilePath buffered objects"""
-
-    def __init__(self, filepath: Union[str, os.PathLike]):
-        raw = bytes(FilePathSource(filepath))
-        super().__init__(raw)
-
-
 class FileStreamSource(FileSource):
     """Interface for FileStream objects (text like)"""
 
@@ -92,16 +84,6 @@ class FileStreamSource(FileSource):
         else:
             raw = bytes(content)
         return raw
-
-
-class BufferedFileStreamSource(BytesSource):
-    """Interface for FileStream buffered objects"""
-
-    def __init__(
-        self, filestream: Union[io.RawIOBase, io.BufferedIOBase, io.TextIOBase]
-    ):
-        raw = bytes(FileStreamSource(filestream))
-        super().__init__(raw)
 
 
 class CommandSource(Source):
@@ -135,16 +117,11 @@ class CommandSource(Source):
         return raw
 
 
-class BufferedCommandSource(BytesSource):
-    """Interface for FileStream buffered objects"""
+class Buffer(BytesSource):
+    """Decorator for buffering Sources in memory"""
 
-    def __init__(
-        self,
-        args: Sequence,
-        destination: Union[None, str, os.PathLike] = None,
-        shell: bool = False,
-    ):
-        raw = bytes(CommandSource(args, destination, shell))
+    def __init__(self, source: Source):
+        raw = bytes(source)
         super().__init__(raw)
 
 

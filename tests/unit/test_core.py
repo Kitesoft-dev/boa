@@ -188,14 +188,14 @@ def test_buffered():
     with tempfile.NamedTemporaryFile("w+b", delete=False) as fp:
         fp.write(msg)
 
-    source = core.BufferedFilePathSource(fp.name)
+    source = core.Buffer(core.FilePathSource(fp.name))
 
     # test against exahustation with for loop
     for _ in range(tries):
         assert bytes(source) == msg
 
     # filestream
-    source = core.BufferedFileStreamSource(io.BytesIO(msg))
+    source = core.Buffer(core.FileStreamSource(io.BytesIO(msg)))
 
     for _ in range(tries):
         assert bytes(source) == msg
@@ -209,7 +209,7 @@ def test_buffered():
     # on windows shell must be true
     shell = bool(is_win)
 
-    source = core.BufferedCommandSource(cmd, shell=shell)
+    source = core.Buffer(core.CommandSource(cmd, shell=shell))
 
     for _ in range(tries):
         assert bytes(source).strip() == bmsg
