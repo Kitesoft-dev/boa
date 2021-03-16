@@ -5,7 +5,7 @@ import locale
 import os
 import pathlib
 import subprocess
-from typing import Sequence, Union
+from typing import List, Sequence, Tuple, Type, Union
 
 from boa.exception import InvalidDestinationException, InvalidSourceException
 
@@ -187,10 +187,10 @@ def _get_destination(obj) -> Destination:
         raise InvalidDestinationException("Unexpected destination given")
 
 
-def _get(obj, expected) -> Union[Source, Destination]:
+def _get(obj, expected: Type) -> Union[Source, Destination]:
     if expected not in (Source, Destination):
         raise ValueError(
-            f"Expected class not valid ({expected}). "
+            f"Expected class not valid ({expected.__name__}). "
             f"Allowed are {Source.__name__} and {Destination.__name__}"
         )
     if expected is Source:
@@ -216,14 +216,14 @@ def get_destinations(destinations) -> Sequence[Destination]:
 
 
 def _get_any(
-    obj, expected
+    obj, expected: Type
 ) -> Union[Source, Destination, Sequence[Source], Sequence[Destination]]:
     if expected not in (Source, Destination):
         raise ValueError(
             f"Expected class not valid ({expected}). "
             f"Allowed are {Source.__name__} and {Destination.__name__}"
         )
-    if isinstance(obj, Sequence) and not isinstance(obj, (str, bytes)):
+    if isinstance(obj, (Tuple, List)):
         return get_sources(obj) if expected is Source else get_destinations(obj)
     else:
         return get_source(obj) if expected is Source else get_destination(obj)
