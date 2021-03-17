@@ -1,51 +1,44 @@
-from typing import Sequence, Union
+from typing import List, Sequence, Tuple, Union
 
-import boa.adapters as adapters
-import boa.core as core
+from boa.core import (
+    BytesSource,
+    Destination,
+    Source,
+    get_any_destination,
+    get_any_source,
+)
 
 
 class Boa:
     """Boa is the main entry for the application"""
 
-    def __init__(self, adapter: Union[None, str, adapters.BaseAdapter] = None):
-        if isinstance(adapter, str):
-            adapter = adapters.get_adapter(adapter)
-        self.adapter = adapter
-
-    def backup_single_in_single_out(
-        self, source: core.Source, destination: core.Destination
-    ) -> core.Status:
+    def backup_single_in_single_out(self, source: Source, destination: Destination):
         """
         Backup the selected source into the destination.
 
         :param source: The file to backup or the command to run.
         :param destination: The destination of backup.
-        :return: Status code of backup.
         """
+        assert isinstance(source, Source)
+        assert isinstance(destination, Destination)
+
         raw = bytes(source)
-        if self.adapter:
-            status = self.adapter.backup(raw, destination)
-        else:
-            status = destination.write(raw)
-        return status
+        return destination.write(raw)
 
-    def backup_siso(
-        self, source: core.Source, destination: core.Destination
-    ) -> core.Status:
+    def backup_siso(self, source: Source, destination: Destination):
         """
         Backup the selected source into the destination.
 
         :param source: The file to backup or the command to run.
         :param destination: The destination of backup.
-        :return: Status code of backup.
         """
         return self.backup_single_in_single_out(source, destination)
 
     def backup_multiple_in_single_out(
         self,
-        sources: Sequence[core.Source],
-        destination: core.Destination,
-    ) -> core.Status:
+        sources: Sequence[Source],
+        destination: Destination,
+    ):
         """
         Backup the selected sources into the destination.
 
@@ -54,18 +47,21 @@ class Boa:
 
         :param sources: The sources to backup.
         :param destination: The destination of backup.
-        :return: Status code of backup.
         """
+        assert isinstance(sources, (Tuple, List))
+        assert all(isinstance(source, Source) for source in sources)
+        assert isinstance(destination, Destination)
+
         raws = [bytes(source) for source in sources]
         raw = b"".join(raws)
-        source = core.BytesSource(raw)
+        source = BytesSource(raw)
         return self.backup_siso(source, destination)
 
     def backup_miso(
         self,
-        sources: Sequence[core.Source],
-        destination: core.Destination,
-    ) -> core.Status:
+        sources: Sequence[Source],
+        destination: Destination,
+    ):
         """
         Backup the selected sources into the destination.
 
@@ -74,15 +70,14 @@ class Boa:
 
         :param sources: The sources to backup.
         :param destination: The destination of backup.
-        :return: Status code of backup.
         """
         return self.backup_multiple_in_single_out(sources, destination)
 
     def backup_single_in_multiple_out(
         self,
-        source: core.Source,
-        destinations: Sequence[core.Destination],
-    ) -> Sequence[core.Status]:
+        source: Source,
+        destinations: Sequence[Destination],
+    ):
         """
         Backup the selected source into the destinations provided.
 
@@ -92,19 +87,22 @@ class Boa:
 
         :param source: The sources to backup.
         :param destinations: The destinations of backup.
-        :return: Status codes of backup.
         """
+        assert isinstance(source, Source)
+        assert isinstance(destinations, (Tuple, List))
+        assert all(isinstance(destination, Destination) for destination in destinations)
+
         raw = bytes(source)
-        bytesource = core.BytesSource(raw)
+        bytesource = BytesSource(raw)
         return [
             self.backup_siso(bytesource, destination) for destination in destinations
         ]
 
     def backup_simo(
         self,
-        source: core.Source,
-        destinations: Sequence[core.Destination],
-    ) -> Sequence[core.Status]:
+        source: Source,
+        destinations: Sequence[Destination],
+    ):
         """
         Backup the selected source into the destinations provided.
 
@@ -114,15 +112,14 @@ class Boa:
 
         :param source: The sources to backup.
         :param destinations: The destinations of backup.
-        :return: Status codes of backup.
         """
         return self.backup_single_in_multiple_out(source, destinations)
 
     def backup_multiple_in_multiple_out(
         self,
-        sources: Sequence[core.Source],
-        destinations: Sequence[core.Destination],
-    ) -> Sequence[core.Status]:
+        sources: Sequence[Source],
+        destinations: Sequence[Destination],
+    ):
         """
         Backup the selected sources into the destinations provided.
 
@@ -131,8 +128,12 @@ class Boa:
 
         :param sources: The sources to backup.
         :param destinations: The destinations of backup.
-        :return: Status codes of backup.
         """
+        assert isinstance(sources, (Tuple, List))
+        assert all(isinstance(source, Source) for source in sources)
+        assert isinstance(sources, (Tuple, List))
+        assert all(isinstance(destination, Destination) for destination in destinations)
+
         if len(sources) != len(destinations):
             raise ValueError("Length mismatch between source and destination!")
 
@@ -143,9 +144,9 @@ class Boa:
 
     def backup_mimo(
         self,
-        sources: Sequence[core.Source],
-        destinations: Sequence[core.Destination],
-    ) -> Sequence[core.Status]:
+        sources: Sequence[Source],
+        destinations: Sequence[Destination],
+    ):
         """
         Backup the selected sources into the destinations provided.
 
@@ -154,15 +155,14 @@ class Boa:
 
         :param sources: The sources to backup.
         :param destinations: The destinations of backup.
-        :return: Status codes of backup.
         """
         return self.backup_multiple_in_multiple_out(sources, destinations)
 
     def backup(
         self,
-        source: Union[core.Source, Sequence[core.Source]],
-        destination: Union[core.Destination, Sequence[core.Destination]],
-    ) -> Union[core.Status, Sequence[core.Status]]:
+        source: Union[Source, Sequence[Source]],
+        destination: Union[Destination, Sequence[Destination]],
+    ):
         """
         Backup the selected source(s) into the destination(s) provided.
 
@@ -170,15 +170,14 @@ class Boa:
 
         :param source: The source(s) to backup.
         :param destination: The destination(s) of backup.
-        :return: Status code(s) of backup.
         """
-        if isinstance(source, core.Source):
-            if isinstance(destination, core.Destination):
+        if isinstance(source, Source):
+            if isinstance(destination, Destination):
                 return self.backup_siso(source, destination)
             else:
                 return self.backup_simo(source, destination)
         else:
-            if isinstance(destination, core.Destination):
+            if isinstance(destination, Destination):
                 return self.backup_miso(source, destination)
             else:
                 return self.backup_mimo(source, destination)
@@ -193,17 +192,15 @@ def backup(source, destination, *, return_wrappers=False):
     an exception will be raised.
 
     :param return_wrappers: If True, the Source and
-    Destination objects will be returned after the status.
+    Destination objects will be returned.
     :param source: The source(s) to backup.
     :param destination: The destination(s) of backup.
-    :return: Status code of backup.
     """
     boa = Boa()
 
-    _source = core.get_any_source(source)
-    _destination = core.get_any_destination(destination)
-    status = boa.backup(_source, _destination)
+    _source = get_any_source(source)
+    _destination = get_any_destination(destination)
+    boa.backup(_source, _destination)
+
     if return_wrappers:
-        return status, _source, _destination
-    else:
-        return status
+        return _source, _destination

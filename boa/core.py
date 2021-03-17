@@ -1,5 +1,4 @@
 import abc
-import enum
 import io
 import locale
 import os
@@ -16,23 +15,6 @@ def get_encoding(obj):
     else:
         encoding = locale.getpreferredencoding(False)
     return encoding
-
-
-class Status(enum.Flag):
-    """The status returned after a backup operation"""
-
-    OK = enum.auto()
-
-    UNAUTHORIZED = enum.auto()
-    TIMEOUT = enum.auto()
-    INTERNAL_ERROR = enum.auto()
-
-    USER_ERROR = enum.auto()
-
-    FAILED = UNAUTHORIZED | TIMEOUT | INTERNAL_ERROR | USER_ERROR
-
-    def is_failed(self) -> bool:
-        return bool(self & Status.FAILED)
 
 
 class Source(abc.ABC):
@@ -128,7 +110,7 @@ class Buffer(BytesSource):
 class Destination(abc.ABC):
     """Interface for destination of backup"""
 
-    def write(self, content: bytes) -> Status:
+    def write(self, content: bytes):
         raise NotImplementedError
 
 
@@ -138,10 +120,9 @@ class FilePathDestination(Destination):
     def __init__(self, filepath: Union[str, os.PathLike]):
         self.filepath = filepath
 
-    def write(self, content: bytes) -> Status:
+    def write(self, content: bytes):
         with open(self.filepath, "wb") as f:
             f.write(content)
-        return Status.OK
 
 
 class FileStreamDestination(Destination):
@@ -152,12 +133,11 @@ class FileStreamDestination(Destination):
     ):
         self.filestream = filestream
 
-    def write(self, content: bytes) -> Status:
+    def write(self, content: bytes):
         if isinstance(self.filestream, io.StringIO):
             encoding = get_encoding(self.filestream)
             content = str(content, encoding=encoding)
         self.filestream.write(content)
-        return Status.OK
 
 
 def _get_source(obj) -> Source:
