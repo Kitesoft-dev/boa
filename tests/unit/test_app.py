@@ -4,7 +4,13 @@ import tempfile
 import pytest
 
 from boa import Boa, backup
-from boa.core import BytesSource, FileStreamDestination, FileStreamSource
+from boa.core import (
+    BytesSource,
+    Destination,
+    FileStreamDestination,
+    FileStreamSource,
+    Source,
+)
 from boa.exception import InvalidDestinationException, InvalidSourceException
 
 
@@ -126,7 +132,14 @@ def test_boa_backup_mimo():
 def test_backup(src, dst, return_wrappers):
     # we already know that backup works, so we
     # just need to check if conversions are working good
-    backup(src, dst, return_wrappers=return_wrappers)
+    result = backup(src, dst, return_wrappers=return_wrappers)
+
+    if not return_wrappers:
+        assert result is None
+    else:
+        assert len(result) == 2
+        assert isinstance(result[0], (tuple, list, Source))
+        assert isinstance(result[1], (tuple, list, Destination))
 
 
 @pytest.mark.parametrize("src", ["this_file_doesnt_exist.txt", 123])

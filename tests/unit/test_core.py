@@ -38,20 +38,6 @@ def test_get_encoding():
     assert core.get_encoding(obj) == enc
 
 
-def test_backup_status():
-    status_dict = {name: status for name, status in [(s.name, s) for s in core.Status]}
-
-    for key, status in status_dict.items():
-        is_expected_failed = True
-        if key == "OK":
-            is_expected_failed = False
-
-        if is_expected_failed:
-            assert status.is_failed()
-        else:
-            assert not status.is_failed()
-
-
 def test_source_bytes():
     msg = "Hello"
     bmsg = msg.encode()
