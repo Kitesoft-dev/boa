@@ -45,14 +45,6 @@ def test_boa():
     bdst.seek(0)
     assert bdst.read() == bmsg
 
-    # setup boa with telegram adapter
-    boa = Boa("telegram")
-    src, dst = io.BytesIO(bmsg), io.BytesIO()
-
-    # TODO remove when telegram adapter is done
-    with pytest.raises(NotImplementedError):
-        boa.backup_siso(FileStreamSource(src), FileStreamDestination(dst))
-
 
 def test_boa_backup_siso():
     boa = Boa()
