@@ -118,9 +118,10 @@ class FilePathDestination(Destination):
     """Interface for destination of backup on filesystem"""
 
     def __init__(self, filepath: Union[str, os.PathLike]):
-        self.filepath = filepath
+        self.filepath = pathlib.Path(filepath)
 
     def write(self, content: bytes):
+        os.makedirs(self.filepath.parent, exist_ok=True)
         with open(self.filepath, "wb") as f:
             f.write(content)
 

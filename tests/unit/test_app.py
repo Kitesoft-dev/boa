@@ -134,6 +134,15 @@ def test_backup(src, dst, return_wrappers):
         assert isinstance(result[1], (tuple, list, Destination))
 
 
+def test_backup_out():
+    with open("setup.py", "rb") as f:
+        src = f.read()
+    dst = tempfile.NamedTemporaryFile("w+t", delete=False).name
+    backup(src, dst)
+    with open(dst, "rb") as f:
+        assert f.read() == src
+
+
 @pytest.mark.parametrize("src", ["this_file_doesnt_exist.txt", 123])
 @pytest.mark.parametrize("dst", [io.BytesIO()])
 def test_backup_wrong_source(src, dst):
