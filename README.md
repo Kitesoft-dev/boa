@@ -6,18 +6,18 @@
 
 ## Usage
 ### Source
-To use *boa* inside your python project, you just need to import its main module.
+To use *boa* inside your python project, you just need to import it.
 
 This is an example of usage:
 ```python
 import boa
 
-boa.backup("path/to/source.ext", "path/to/dest")
+boa.backup("path/to/source", "path/to/dest")
 
 # optional test
-fin = open("path/to/source.ext")
+fin = open("path/to/source")
 fout = open("path/to/dest")
-assert fout.read() == fin.read()
+assert fin.read() == fout.read()
 ```
 That's it.
 
