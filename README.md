@@ -5,5 +5,25 @@
 ## Installation
 
 ## Usage
+### Source
+To use *boa* inside your python project, you just need to import its main module.
+
+This is an example of usage:
+```python
+import boa
+
+boa.backup("path/to/source.ext", "path/to/dest")
+
+# optional test
+fin = open("path/to/source.ext")
+fout = open("path/to/dest")
+assert fout.read() == fin.read()
+```
+That's it.
 
 ## Development
+In order to improve *boa*, you need to follow these simple steps:
+- install dev requirements running `pip install -r requirements/dev.txt`;
+- run `pre-commit install` to install project's git hooks;
+- run `tox` to check if your code pass tests and linters' checks;
+- push your changes.
