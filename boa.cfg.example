@@ -1,0 +1,6 @@
+[telegram]
+token = abc123
+chat_ids =
+    123
+    456
+    789
