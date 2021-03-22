@@ -12,6 +12,7 @@ jobs:
   test:
     name: ${{ matrix.os }} ${{ matrix.python-version }}
     runs-on: ${{ matrix.os }}
+    environment: test
     strategy:
       fail-fast: false
       matrix:
