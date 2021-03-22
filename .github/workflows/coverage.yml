@@ -31,6 +31,9 @@ jobs:
           key: pipcache-${{ runner.os }}-3.9-${{ hashFiles('requirements/*.txt') }}
       - run: pip install tox
       - run: tox -e coverage
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_IDS: ${{ secrets.TELEGRAM_CHAT_IDS }}
       - name: Codecov
         uses: codecov/codecov-action@v1
         with:
