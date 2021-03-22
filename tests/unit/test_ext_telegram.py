@@ -1,57 +1,48 @@
-import configparser
+import os
 
+import dotenv
 import pytest
 from telegram.error import InvalidToken
 
 import boa.core as core
 from boa.ext.telegram import TelegramBotDestination
+from tests.utility import set_env
+
+KEY_TOKEN = "TELEGRAM_TOKEN"
+KEY_CHATS = "TELEGRAM_CHAT_IDS"
 
 
-def test_cfg():
-    parser = configparser.ConfigParser()
-    parser.read("this file doesn't exist")
-    assert parser.sections() == []
-
-    parser.read("boa.cfg.example")
-    assert len(parser.sections()) > 0
-
-    assert parser["telegram"].get("token")
-    assert parser["telegram"].get("chat_ids")
-    chat_ids = parser["telegram"].get("chat_ids")
-    chat_ids = [line for line in chat_ids.splitlines() if line]
-    assert len(chat_ids) == 3
-    assert chat_ids == ["123", "456", "789"]
+def test_missing_token():
+    with set_env({KEY_TOKEN: ""}):
+        with pytest.raises(ValueError):
+            TelegramBotDestination()
 
 
-@pytest.mark.parametrize(
-    "kwargs",
-    [
-        {"section": "foo"},
-        {"section": "telegram:no_token"},
-        {"section": "telegram:no_token_val"},
-        {"section": "telegram:no_chats"},
-        {"section": "telegram:no_chats_val"},
-    ],
-)
-def test_class_init(kwargs):
-    with pytest.raises(ValueError):
-        TelegramBotDestination(**kwargs)
+def test_invalid_token():
+    with set_env({KEY_TOKEN: "foobar"}):
+        with pytest.raises(InvalidToken):
+            TelegramBotDestination()
 
 
-def test_init_invalidtoken():
-    with pytest.raises(InvalidToken):
-        TelegramBotDestination(section="telegram:invalid_token")
+def test_invalid_chat():
+    with set_env():
+        # get valid token and chats, but invalidate chats
+        dotenv.load_dotenv()
+        os.environ.update({KEY_CHATS: ""})
 
-
-def test_class_init_nofile():
-    with pytest.raises(FileNotFoundError):
-        TelegramBotDestination(config_filepath="this file doesn't exist!")
+        with pytest.raises(ValueError):
+            TelegramBotDestination()
 
 
 def test_send_ok():
-    src = core.FilePathSource("boa.cfg.example")
-    dst = TelegramBotDestination(
-        filename="example_config.txt",
-        message="Sample message, even emojis are supported! ❤😁👍🙌😎🐱‍🚀✔👀",
-    )
-    dst.write(bytes(src))
+    with set_env():
+        # get token and chat ids from .env
+        dotenv.load_dotenv()
+
+        # do the actual backup
+        src = core.FilePathSource("setup.py")
+        dst = TelegramBotDestination(
+            filename="setup.py",
+            message="Sample message, even emojis are supported! ❤😁👍🙌😎🐱‍🚀✔👀",
+        )
+        dst.write(bytes(src))

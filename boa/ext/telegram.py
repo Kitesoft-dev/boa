@@ -1,8 +1,5 @@
 import abc
-import configparser
 import os
-import pathlib
-from typing import Union
 
 from telegram.ext import Updater
 
@@ -10,36 +7,11 @@ import boa.core as core
 
 
 class TelegramDestination(core.Destination, abc.ABC):
-    def __init__(
-        self, config_filepath: Union[str, os.PathLike, None] = None, section: str = None
-    ):
-        if not config_filepath:
-            config_filepath = "boa.cfg"
-
-        if not section:
-            section = "telegram"
-
-        config = configparser.ConfigParser()
-
-        if not pathlib.Path(config_filepath).exists():
-            raise FileNotFoundError(f"{config_filepath} doesn't exist")
-
-        # read config from file and load into parser obj
-        config.read(config_filepath)
-
-        # check if given section is valid
-        if not config.has_section(section):
-            raise ValueError(f"Section '{section}' not found in {config_filepath}")
-
-        token = config[section].get("token")
+    def __init__(self):
+        token = os.getenv("TELEGRAM_TOKEN", None)
         if not token:
             raise ValueError("Missing token!")
         updater = Updater(token, use_context=True)
-
-        self.config_filepath = config_filepath
-        self.section = section
-
-        self.config = config
         self.updater = updater
 
 
@@ -48,18 +20,16 @@ class TelegramBotDestination(TelegramDestination):
         self,
         filename: str = None,
         message: str = None,
-        config_filepath: Union[str, os.PathLike, None] = None,
-        section: str = None,
     ):
-        super().__init__(config_filepath=config_filepath, section=section)
+        super().__init__()
 
         self.message = message
         self.filename = filename
 
-        chat_ids = self.config[self.section].get("chat_ids")
+        chat_ids = os.getenv("TELEGRAM_CHAT_IDS", None)
         # if not empty string, get array
         if chat_ids:
-            chat_ids = [line for line in chat_ids.split() if line]
+            chat_ids = [word for word in chat_ids.strip().split() if word.isnumeric()]
         # if empty array, error
         if not chat_ids:
             raise ValueError("Missing chat ids!")
