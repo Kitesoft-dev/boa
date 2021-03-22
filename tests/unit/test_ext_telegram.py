@@ -25,24 +25,22 @@ def test_invalid_token():
 
 
 def test_invalid_chat():
-    with set_env():
-        # get valid token and chats, but invalidate chats
-        dotenv.load_dotenv()
-        os.environ.update({KEY_CHATS: ""})
+    # get valid token and chats, but invalidate chats
+    dotenv.load_dotenv(override=True)
+    os.environ.update({KEY_CHATS: ""})
 
-        with pytest.raises(ValueError):
-            TelegramBotDestination()
+    with pytest.raises(ValueError):
+        TelegramBotDestination()
 
 
 def test_send_ok():
-    with set_env():
-        # get token and chat ids from .env
-        dotenv.load_dotenv()
+    # get token and chat ids from .env
+    dotenv.load_dotenv(override=True)
 
-        # do the actual backup
-        src = core.FilePathSource("setup.py")
-        dst = TelegramBotDestination(
-            filename="setup.py",
-            message="Sample message, even emojis are supported! ❤😁👍🙌😎🐱‍🚀✔👀",
-        )
-        dst.write(bytes(src))
+    # do the actual backup
+    src = core.FilePathSource("setup.py")
+    dst = TelegramBotDestination(
+        filename="setup.py",
+        message="Sample message, even emojis are supported! ❤😁👍🙌😎🐱‍🚀✔👀",
+    )
+    dst.write(bytes(src))
